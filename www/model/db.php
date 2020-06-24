@@ -1,5 +1,9 @@
 <?php
 
+/*
+ データベースに接続
+ @return ＄dbh
+*/
 function get_db_connect(){
   // MySQL用のDSN文字列
   $dsn = 'mysql:dbname='. DB_NAME .';host='. DB_HOST .';charset='.DB_CHARSET;
@@ -16,6 +20,10 @@ function get_db_connect(){
   return $dbh;
 }
 
+/*
+ queryでデータベースから取得
+ @return　取得した情報　一行
+*/
 function fetch_query($db, $sql, $params = array()){
   try{
     $statement = $db->prepare($sql);
@@ -27,6 +35,10 @@ function fetch_query($db, $sql, $params = array()){
   return false;
 }
 
+/*
+ queryでデータベースから取得
+ @return　取得した情報　全て
+*/
 function fetch_all_query($db, $sql, $params = array()){
   try{
     $statement = $db->prepare($sql);
@@ -37,7 +49,9 @@ function fetch_all_query($db, $sql, $params = array()){
   }
   return false;
 }
-
+/*
+ prepareでデータベースで処理を実行
+*/
 function execute_query($db, $sql, $params = array()){
   try{
     $statement = $db->prepare($sql);
