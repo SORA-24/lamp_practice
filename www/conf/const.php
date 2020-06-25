@@ -1,4 +1,6 @@
 <?php
+/* フレーム内のページ表示を全ドメインで禁止したい場合 */
+header('X-Frame-Options: DENY');
 // ディレクトリを定数化
 define('MODEL_PATH', $_SERVER['DOCUMENT_ROOT'] . '/../model/');
 define('VIEW_PATH', $_SERVER['DOCUMENT_ROOT'] . '/../view/');

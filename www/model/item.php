@@ -124,13 +124,13 @@ function update_item_stock($db, $item_id, $stock){
     UPDATE
       items
     SET
-      stock = {$stock}
+      stock = ?
     WHERE
-      item_id = {$item_id}
+      item_id = ?
     LIMIT 1
   ";
   
-  return execute_query($db, $sql);
+  return execute_query($db, $sql,array($stock,$item_id));
 }
 
 // 商品とその写真を削除する
@@ -185,7 +185,13 @@ function validate_item($name, $price, $stock, $filename, $status){
     && $is_valid_item_status;
 }
 
-// 以下　定数にある範囲外でなければ、エラーを返す
+/* 以下　定数にある範囲外でなければ、エラーを返す
+$name　商品ネーム
+$price　料金
+$stock　在庫
+$filename 写真の名前
+status　公開非公開設定
+*/
 
 function is_valid_item_name($name){
   $is_valid = true;

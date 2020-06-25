@@ -59,7 +59,7 @@ function get_user_cart($db, $user_id, $item_id){
 // カートに入れるを押した時
 // カートになければ、インサートする
 // 既にカートにあれば、一個追加する
-function add_cart($db, $user_id, $item_id ) {
+function add_cart($db, $user_id, $item_id ) {   
   $cart = get_user_cart($db, $user_id, $item_id);
   if($cart === false){
     return insert_cart($db, $user_id, $item_id);
@@ -105,7 +105,6 @@ function delete_cart($db, $cart_id){
       cart_id = {$cart_id}
     LIMIT 1
   ";
-
   return execute_query($db, $sql);
 }
 
@@ -126,7 +125,6 @@ function purchase_carts($db, $carts){
       set_error($cart['name'] . 'の購入に失敗しました。');
     }
   }
-  
   delete_user_carts($db, $carts[0]['user_id']);
 }
 
@@ -138,7 +136,6 @@ function delete_user_carts($db, $user_id){
     WHERE
       user_id = {$user_id}
   ";
-
   execute_query($db, $sql);
 }
 
