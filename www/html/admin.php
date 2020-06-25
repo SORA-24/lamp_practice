@@ -15,6 +15,13 @@ if(is_logined() === false){
   redirect_to(LOGIN_URL);
 }
 
+$order = 'created DESC'; 
+if(get_post('order_num') !== ''){
+  $order_num = get_post('order_num');
+  $order = get_order_option($order_num);
+}
+
+
 // データベースに接続
 $db = get_db_connect();
 
@@ -27,7 +34,7 @@ if(is_admin($user) === false){
 }
 
 // アイテム情報を取得
-$items = get_all_items($db);
+$items = get_all_items($db,$order);
 
 // 商品管理ページを表示
 include_once VIEW_PATH . '/admin_view.php';

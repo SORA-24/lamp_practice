@@ -41,6 +41,20 @@
         </div>
       <?php } ?>
       </div>
+      <!-- 以下並び替えオプション -->
+      <div>
+        <p>並び替えオプション</p>
+        <form method="post">
+          <select name="order_num">
+            <option value="1">新着順</option>
+            <option value="2">古い順</option>
+            <option value="3">価格が安い順</option>
+            <option value="4">価格が高い順</option>
+          </select>
+          <input type="submit" value="並び替える">
+        </form>
+      </div>
+      <!-- 並び替えオプションここまで -->
     </div>
   </div>
   

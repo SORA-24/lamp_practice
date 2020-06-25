@@ -56,6 +56,13 @@ define('PERMITTED_ITEM_STATUSES', array(
   'open' => 1,
   'close' => 0,
 ));
+// 
+define('ORDER_ITEMS_OPTION', array(
+  1 => 'created DESC',
+  2 => 'created ASC',
+  3 => 'price ASC',
+  4 => 'price DESC'
+));
 
 // 商品登録できる写真の拡張子
 define('PERMITTED_IMAGE_TYPES', array(

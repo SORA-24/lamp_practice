@@ -29,8 +29,8 @@ function get_item($db, $item_id){
 　is_open = false 商品全てを取得
 　is_open = true 公開されている商品のみ取得
  */
-function get_items($db, $is_open = false){
-  $sql = '
+function get_items($db, $order, $is_open = false){
+  $sql = "
     SELECT
       item_id, 
       name,
@@ -40,24 +40,28 @@ function get_items($db, $is_open = false){
       status
     FROM
       items
-  ';
+  ";
   if($is_open === true){
-    $sql .= '
+    $sql .= "
       WHERE status = 1
-    ';
+      ORDER BY {$order}
+    ";
+  }else{
+    $sql .= "
+      ORDER BY {$order}
+    ";
   }
-
   return fetch_all_query($db, $sql);
 }
 
 // 商品全てを取得
-function get_all_items($db){
-  return get_items($db);
+function get_all_items($db,$order){
+  return get_items($db,$order);
 }
 
 // 公開されている商品のみを取得
-function get_open_items($db){
-  return get_items($db, true);
+function get_open_items($db,$order){
+  return get_items($db, $order ,true);
 }
 
 // 商品登録の際にエラーがないかをチェック
@@ -234,4 +238,15 @@ function is_valid_item_status($status){
     $is_valid = false;
   }
   return $is_valid;
+}
+
+// 並び替えオプション
+// 送られてきたオプション数値をチェック
+function get_order_option($order_num){
+  if(isset(ORDER_ITEMS_OPTION[$order_num]) === false){
+    $order = ORDER_ITEMS_OPTION[1];
+  }else{
+    $order = ORDER_ITEMS_OPTION[$order_num];
+  }
+  return $order;
 }
