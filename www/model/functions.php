@@ -182,3 +182,9 @@ function is_valid_csrf_token($token){
   }
   return $token === get_session('csrf_token');
 }
+
+// 不正なアクセスがあった時にメッセージを登録するのと、セッションを空にする
+function not_receive_token(){
+  set_message('不正な処理が行われました。');
+  set_session('csrf_token',''); 
+}

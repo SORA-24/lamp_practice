@@ -12,9 +12,9 @@ if(is_logined() === false){
 }
 // トークンがなかった場合にエラーにする
 if(!$_POST['token'] || !$_SESSION['csrf_token']){
-  set_message('不正な処理が行われました。');
+  not_receive_token();
 }elseif(!is_valid_csrf_token($_POST['token'])){
-  set_message('不正な処理が行われました。');
+  not_receive_token();
 }else{
   $db = get_db_connect();
   $user = get_login_user($db);
