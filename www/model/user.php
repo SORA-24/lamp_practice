@@ -51,9 +51,10 @@ function get_user_by_name($db, $name){
 }
 
 // ログインした時に正しくログインできれば、セッションにuser_idをセットする
+// 　password_verifyでハッシュされた$user['password']と$passwordと照合する
 function login_as($db, $name, $password){
   $user = get_user_by_name($db, $name);
-  if($user === false || $user['password'] !== $password){
+  if($user === false || password_verify($password , $user['password'] === false)){
     return false;
   }
   set_session('user_id', $user['user_id']);
@@ -68,12 +69,13 @@ function get_login_user($db){
 }
 
 // ユーザー新規登録
+// エラーがなければ、$passwordをハッシュ化してデータベースに登録
 function regist_user($db, $name, $password, $password_confirmation) {
   if( is_valid_user($name, $password, $password_confirmation) === false){
     return false;
   }
-  
-  return insert_user($db, $name, $password);
+  $hash = password_hash($password, PASSWORD_DEFAULT);
+  return insert_user($db, $name, $hash );
 }
 
 // ユーザータイプが管理者であればtrueを返す
@@ -125,9 +127,9 @@ function insert_user($db, $name, $password){
   $sql = "
     INSERT INTO
       users(name, password)
-    VALUES ('{$name}', '{$password}');
+    VALUES (?, ?);
   ";
 
-  return execute_query($db, $sql);
+  return execute_query($db, $sql,array($name, $password));
 }
 
