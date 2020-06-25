@@ -102,14 +102,13 @@
       <!-- 以下並び替えオプション -->
       <div>
         <p>並び替えオプション</p>
-        <form method="post">
-          <select name="order_num">
-            <option value="1">新着順</option>
-            <option value="2">古い順</option>
-            <option value="3">価格が安い順</option>
-            <option value="4">価格が高い順</option>
+        <form method="get">
+          <select name="order_num" onchange="submit(this.form)">
+            <option value="1" <?= $order_num == "1" ? 'selected' : "";?>>新着順</option>
+            <option value="2" <?= $order_num == "2" ? 'selected' : "";?>>古い順</option>
+            <option value="3" <?= $order_num == "3" ? 'selected' : "";?>>価格が安い順</option>
+            <option value="4" <?= $order_num == "4" ? 'selected' : "";?>>価格が高い順</option>
           </select>
-          <input type="submit" value="並び替える">
         </form>
       </div>
       <!-- 並び替えオプションここまで -->

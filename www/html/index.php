@@ -12,8 +12,8 @@ if(is_logined() === false){
 
 $order = 'created DESC'; 
 
-if(get_post('order_num') !== ''){
-  $order_num = get_post('order_num');
+if(get_get('order_num') !== ''){
+  $order_num = get_get('order_num');
   $order = get_order_option($order_num);
 }
 
