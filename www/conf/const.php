@@ -24,6 +24,8 @@ define('HOME_URL', '/index.php');
 define('CART_URL', '/cart.php');
 define('FINISH_URL', '/finish.php');
 define('ADMIN_URL', '/admin.php');
+define('HISTORY_URL', '/history.php');
+define('DETAILS_URL', '/datails.php');
 
 // 正規表現
 // 半角英数字1文字以上

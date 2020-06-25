@@ -116,16 +116,29 @@ function purchase_carts($db, $carts){
   if(validate_cart_purchase($carts) === false){
     return false;
   }
-  foreach($carts as $cart){
-    if(update_item_stock(
-        $db, 
-        $cart['item_id'], 
-        $cart['stock'] - $cart['amount']
-      ) === false){
+  try{
+  $db -> beginTransaction();
+  // 注文履歴にデータを登録し、注文番号を受け取る
+  $order_id = insert_history($db , $carts[0]['user_id']);
+  // この部分で在庫の変更と、購入履歴に登録する。
+    foreach($carts as $cart){
+      if(update_item_stock($db,$cart['item_id'],$cart['stock'] - $cart['amount']) === false ||
+        insert_details($db , $cart , $order_id) === false){
       set_error($cart['name'] . 'の購入に失敗しました。');
     }
+    }
+    delete_user_carts($db, $carts[0]['user_id']);
+    if(!has_error()){
+      $db -> commit();
+    }else{
+      set_error('購入処理に失敗しました。再度お試しください');
+      $db -> rollBack();
+      redirect_to(CART_URL);
+    }
+  }catch(PDOExeption $e){
+    set_error('購入処理に失敗しました');
+    $db -> rollBack();
   }
-  delete_user_carts($db, $carts[0]['user_id']);
 }
 
 // カートにある商品を削除する
@@ -172,3 +185,113 @@ function validate_cart_purchase($carts){
   return true;
 }
 
+// 注文履歴にデータを登録
+function insert_history($db, $user_id){
+  $sql = "
+    INSERT INTO history (
+      user_id
+    ) VALUES ( ? )";
+  execute_query($db, $sql ,array($user_id));
+  return $db -> lastInsertId();
+}
+
+// 注文詳細にデータを登録
+function insert_details($db , $cart , $order_id){
+  $sql = "
+  INSERT INTO `details`(
+    `order_id`, 
+    `item_id`, 
+    `price`, 
+    `amount`, 
+    `sum_price`) 
+    VALUES (
+      ? , ? , ? , ? , ? 
+    )";
+    $sum_price = ($cart['price'] * $cart['amount']);
+    execute_query($db, $sql,array($order_id, $cart['item_id'], $cart['price'] , $cart['amount'],$sum_price));
+}
+
+
+// ユーザー新規登録するSQL文
+function insert_user($db, $name, $password){
+  $sql = "
+    INSERT INTO
+      users(name, password)
+    VALUES (?, ?);
+  ";
+  return execute_query($db, $sql,array($name, $password));
+  
+}
+
+/*
+明細を取得
+*/
+function get_details($db, $order_id,$user){
+  $sql = "
+    SELECT  
+    a.`item_id`, 
+    a.`price`, 
+    a.`amount`, 
+    a.`sum_price`, 
+    b.created,
+    b.order_id,
+    c.name   
+  FROM 
+    `details`AS a
+  LEFT JOIN 
+    history AS b
+  ON 
+    a.order_id = b.order_id
+  LEFT JOIN 
+    items AS c
+  ON 
+    a.item_id = c.item_id
+  WHERE 
+    a.order_id = ?
+  ";
+  if(is_admin($user) === true){ 
+    $sql .= '
+      ORDER BY created DESC 
+    ';
+    return fetch_all_query($db, $sql,array($order_id));
+  }else{
+    $sql .= '
+      AND b.user_id = ? 
+      ORDER BY created DESC 
+    ';
+    $user_id = $user['user_id'];
+    return fetch_all_query($db, $sql,array($order_id,$user['user_id']));
+  }
+    
+}
+
+// ユーザの購入履歴を取得
+// オーダーIDでグループ化
+function get_history($db, $user){
+  $sql="
+    SELECT 
+      a.`order_id`, 
+      SUM(a.sum_price) AS `total_price` , 
+      b.created,
+      b.user_id
+    FROM `details`AS a 
+    LEFT JOIN `history` AS b 
+    ON a.order_id = b.order_id 
+  ";
+  if(is_admin($user) === true){ 
+    $sql .= '
+      GROUP BY a.order_id 
+      ORDER BY created DESC 
+    ';
+    return fetch_all_query($db, $sql);
+  }else{
+    $sql .= '
+      WHERE b.user_id = ?
+      GROUP BY a.order_id 
+      ORDER BY created DESC 
+    ';
+    $user_id = $user['user_id'];
+    return fetch_all_query($db, $sql,array($user_id));
+  }
+  
+}
