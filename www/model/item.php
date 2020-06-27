@@ -29,8 +29,8 @@ function get_item($db, $item_id){
 　is_open = false 商品全てを取得
 　is_open = true 公開されている商品のみ取得
  */
-function get_items($db, $is_open = false){
-  $sql = '
+function get_items($db, $order, $start ,$is_open = false){
+  $sql = "
     SELECT
       item_id, 
       name,
@@ -40,24 +40,30 @@ function get_items($db, $is_open = false){
       status
     FROM
       items
-  ';
+  ";
   if($is_open === true){
-    $sql .= '
+    $sql .= "
       WHERE status = 1
-    ';
+      ORDER BY {$order}
+      LIMIT ? , 8
+    ";
+  }else{
+    $sql .= "
+      ORDER BY {$order}
+      LIMIT ? , 8
+    ";
   }
-
-  return fetch_all_query($db, $sql);
+  return fetch_all_query($db, $sql, array($start));
 }
 
 // 商品全てを取得
-function get_all_items($db){
-  return get_items($db);
+function get_all_items($db,$order,$start){
+  return get_items($db,$order,$start);
 }
 
 // 公開されている商品のみを取得
-function get_open_items($db){
-  return get_items($db, true);
+function get_open_items($db,$order,$start){
+  return get_items($db, $order, $start ,true);
 }
 
 // 商品登録の際にエラーがないかをチェック
@@ -124,13 +130,13 @@ function update_item_stock($db, $item_id, $stock){
     UPDATE
       items
     SET
-      stock = {$stock}
+      stock = ?
     WHERE
-      item_id = {$item_id}
+      item_id = ?
     LIMIT 1
   ";
   
-  return execute_query($db, $sql);
+  return execute_query($db, $sql,array($stock,$item_id));
 }
 
 // 商品とその写真を削除する
@@ -185,7 +191,13 @@ function validate_item($name, $price, $stock, $filename, $status){
     && $is_valid_item_status;
 }
 
-// 以下　定数にある範囲外でなければ、エラーを返す
+/* 以下　定数にある範囲外でなければ、エラーを返す
+$name　商品ネーム
+$price　料金
+$stock　在庫
+$filename 写真の名前
+status　公開非公開設定
+*/
 
 function is_valid_item_name($name){
   $is_valid = true;
@@ -228,4 +240,102 @@ function is_valid_item_status($status){
     $is_valid = false;
   }
   return $is_valid;
+}
+
+// 並び替えオプション
+// 送られてきたオプション数値をチェック
+function get_order_option($order_num){
+  if(isset(ORDER_ITEMS_OPTION[$order_num]) === false){
+    $order = ORDER_ITEMS_OPTION[1];
+  }else{
+    $order = ORDER_ITEMS_OPTION[$order_num];
+  }
+  return $order;
+}
+
+
+
+/*page番号に対する表示
+$number_items 商品全体から全ての個数を取得
+$max_page 個数から最大のページを計算
+$page 現在のページは指定がなければ、１ページ目 最小ページ１以上最大ページ以下以外をMAX,MINで表現
+$start 現在のページ数から何番目から表示するかを指定
+*/
+function set_pagenation($db , $cnt ){
+if(get_get('page') !== ""){
+  $page = get_get('page');
+}else{
+  $page = 1;
+}
+// $page　現在表示しているページ  
+$page = max($page , 1);
+// $maxpage　最後のページ 
+$maxpage = ceil($cnt / 8);
+$page = min($page , $maxpage);
+$start = ($page -1 ) * 8;
+
+return array("page" => $page , "maxpage" => $maxpage , "start" => $start);
+
+}
+/*
+　is_open = false 商品全ての個数取得
+　is_open = true 公開されている商品の個数を取得
+ */
+function get_count_items($db, $is_open = false){
+  $sql = "
+    SELECT
+     COUNT(*) AS cnt
+    FROM
+      items
+  ";
+  if($is_open === true){
+    $sql .= "
+      WHERE status = 1
+     " ;
+  }
+  $cnt = fetch_query($db, $sql);
+  return $cnt['cnt'];
+}
+
+// 商品全ての個数取得
+function get_count_all_items($db){
+  return get_count_items($db);
+}
+
+// 公開されている商品の個数を取得
+function get_count_open_items($db){
+  return get_count_items($db, true);
+}
+
+// ランキング
+/*
+　is_open = false 商品全ての個数取得
+　is_open = true 公開されている商品の個数を取得
+ */
+function get_ranking($db){
+  $sql = "
+  SELECT 
+    a.item_id , 
+    SUM(a.amount) AS `total_amount`,
+    b.name,
+    b.stock,
+    b.price,
+    b.image,
+    b.status
+  FROM 
+    details AS a
+  JOIN 
+    items AS b 
+  ON 
+    a.item_id = b.item_id
+  WHERE 
+    b.status = 1
+  GROUP BY 
+    a.item_id  
+  ORDER BY 
+    total_amount DESC
+  LIMIT 
+    0 , 3
+  ";
+  return fetch_all_query($db, $sql);
 }

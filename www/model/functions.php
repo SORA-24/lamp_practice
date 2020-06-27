@@ -95,7 +95,7 @@ function is_logined(){
   return get_session('user_id') !== '';
 }
 
-// ファイルをアプローどする処理
+// ファイルをアップロードする処理
 // ファイル形式を確認
 // exif_imagetype()関数で画像か確認
 // 定数に入れている該当する拡張子であれば、ランダムな値.拡張子として返す
@@ -166,3 +166,25 @@ function is_valid_upload_image($image){
   return true;
 }
 
+
+// トークンの生成
+// １６進数+ランダムバイトを生成
+function get_csrf_token(){
+  $token = bin2hex(random_bytes(30));
+  set_session('csrf_token',$token);
+  return $token;
+}
+
+// トークンのチェック
+function is_valid_csrf_token($token){
+  if($token === '') {
+    return false;
+  }
+  return $token === get_session('csrf_token');
+}
+
+// 不正なアクセスがあった時にメッセージを登録するのと、セッションを空にする
+function not_receive_token(){
+  set_message('不正な処理が行われました。');
+  set_session('csrf_token',''); 
+}

@@ -10,17 +10,23 @@ session_start();
 if(is_logined() === false){
   redirect_to(LOGIN_URL);
 }
+// トークンがなかった場合にエラーにする
+if(!$_POST['token'] || !$_SESSION['csrf_token']){
+  not_receive_token();
+}elseif(!is_valid_csrf_token($_POST['token'])){
+  not_receive_token();
+}else{
+  $db = get_db_connect();
+  $user = get_login_user($db);
 
-$db = get_db_connect();
-$user = get_login_user($db);
 
+  $item_id = get_post('item_id');
 
-$item_id = get_post('item_id');
-
-if(add_cart($db,$user['user_id'], $item_id)){
-  set_message('カートに商品を追加しました。');
-} else {
-  set_error('カートの更新に失敗しました。');
-}
+  if(add_cart($db,$user['user_id'], $item_id)){
+    set_message('カートに商品を追加しました。');
+  } else {
+    set_error('カートの更新に失敗しました。');
+  }
+} 
 
 redirect_to(HOME_URL);
