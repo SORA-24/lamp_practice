@@ -306,3 +306,36 @@ function get_count_all_items($db){
 function get_count_open_items($db){
   return get_count_items($db, true);
 }
+
+// ランキング
+/*
+　is_open = false 商品全ての個数取得
+　is_open = true 公開されている商品の個数を取得
+ */
+function get_ranking($db){
+  $sql = "
+  SELECT 
+    a.item_id , 
+    SUM(a.amount) AS `total_amount`,
+    b.name,
+    b.stock,
+    b.price,
+    b.image,
+    b.status
+  FROM 
+    details AS a
+  JOIN 
+    items AS b 
+  ON 
+    a.item_id = b.item_id
+  WHERE 
+    b.status = 1
+  GROUP BY 
+    a.item_id  
+  ORDER BY 
+    total_amount DESC
+  LIMIT 
+    0 , 3
+  ";
+  return fetch_all_query($db, $sql);
+}
