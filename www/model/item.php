@@ -29,7 +29,7 @@ function get_item($db, $item_id){
 　is_open = false 商品全てを取得
 　is_open = true 公開されている商品のみ取得
  */
-function get_items($db, $order, $is_open = false){
+function get_items($db, $order, $start ,$is_open = false){
   $sql = "
     SELECT
       item_id, 
@@ -45,23 +45,25 @@ function get_items($db, $order, $is_open = false){
     $sql .= "
       WHERE status = 1
       ORDER BY {$order}
+      LIMIT ? , 8
     ";
   }else{
     $sql .= "
       ORDER BY {$order}
+      LIMIT ? , 8
     ";
   }
-  return fetch_all_query($db, $sql);
+  return fetch_all_query($db, $sql, array($start));
 }
 
 // 商品全てを取得
-function get_all_items($db,$order){
-  return get_items($db,$order);
+function get_all_items($db,$order,$start){
+  return get_items($db,$order,$start);
 }
 
 // 公開されている商品のみを取得
-function get_open_items($db,$order){
-  return get_items($db, $order ,true);
+function get_open_items($db,$order,$start){
+  return get_items($db, $order, $start ,true);
 }
 
 // 商品登録の際にエラーがないかをチェック
@@ -249,4 +251,58 @@ function get_order_option($order_num){
     $order = ORDER_ITEMS_OPTION[$order_num];
   }
   return $order;
+}
+
+
+
+/*page番号に対する表示
+$number_items 商品全体から全ての個数を取得
+$max_page 個数から最大のページを計算
+$page 現在のページは指定がなければ、１ページ目 最小ページ１以上最大ページ以下以外をMAX,MINで表現
+$start 現在のページ数から何番目から表示するかを指定
+*/
+function set_pagenation($db , $cnt ){
+if(get_get('page') !== ""){
+  $page = get_get('page');
+}else{
+  $page = 1;
+}
+// $page　現在表示しているページ  
+$page = max($page , 1);
+// $maxpage　最後のページ 
+$maxpage = ceil($cnt / 8);
+$page = min($page , $maxpage);
+$start = ($page -1 ) * 8;
+
+return array("page" => $page , "maxpage" => $maxpage , "start" => $start);
+
+}
+/*
+　is_open = false 商品全ての個数取得
+　is_open = true 公開されている商品の個数を取得
+ */
+function get_count_items($db, $is_open = false){
+  $sql = "
+    SELECT
+     COUNT(*) AS cnt
+    FROM
+      items
+  ";
+  if($is_open === true){
+    $sql .= "
+      WHERE status = 1
+     " ;
+  }
+  $cnt = fetch_query($db, $sql);
+  return $cnt['cnt'];
+}
+
+// 商品全ての個数取得
+function get_count_all_items($db){
+  return get_count_items($db);
+}
+
+// 公開されている商品の個数を取得
+function get_count_open_items($db){
+  return get_count_items($db, true);
 }

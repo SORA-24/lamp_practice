@@ -99,6 +99,7 @@
           <?php } ?>
         </tbody>
       </table>
+      <?php include VIEW_PATH . 'templates/pagenation.php'; ?>
       <!-- 以下並び替えオプション -->
       <div>
         <p>並び替えオプション</p>
